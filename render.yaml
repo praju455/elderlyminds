@@ -1,0 +1,125 @@
+services:
+  # ── API Gateway (the single public entry point) ──────────────
+  - type: web
+    name: bhumi-gateway
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn gateway.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GATEWAY_PORT
+        sync: false
+      - key: AI_SERVICE_URL
+        fromService:
+          name: bhumi-ai
+          type: web
+          property: host
+      - key: DATA_SERVICE_URL
+        fromService:
+          name: bhumi-data
+          type: web
+          property: host
+      - key: ALERTS_SERVICE_URL
+        fromService:
+          name: bhumi-alerts
+          type: web
+          property: host
+      - key: CORS_ALLOW_ORIGINS
+        sync: false
+      - key: BASE_URL
+        sync: false
+    healthCheckPath: /health
+
+  # ── AI Service ───────────────────────────────────────────────
+  - type: web
+    name: bhumi-ai
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.ai_service.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_STT_MODEL_ID
+        value: scribe_v1
+      - key: DATA_SERVICE_URL
+        fromService:
+          name: bhumi-data
+          type: web
+          property: host
+      - key: ALERTS_SERVICE_URL
+        fromService:
+          name: bhumi-alerts
+          type: web
+          property: host
+      - key: BASE_URL
+        sync: false
+      - key: MEDIA_DIR
+        value: /tmp/backend_media
+    healthCheckPath: /health
+
+  # ── Data Service ─────────────────────────────────────────────
+  - type: web
+    name: bhumi-data
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.data_service.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATA_STORE_MODE
+        value: mongo
+      - key: MONGO_URI
+        sync: false
+      - key: MONGO_DB_NAME
+        value: eldermind
+    healthCheckPath: /health
+
+  # ── Alerts Service ───────────────────────────────────────────
+  - type: web
+    name: bhumi-alerts
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.alerts_service.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_PHONE
+        sync: false
+      - key: META_WHATSAPP_TOKEN
+        sync: false
+      - key: META_WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: DATA_SERVICE_URL
+        fromService:
+          name: bhumi-data
+          type: web
+          property: host
+    healthCheckPath: /health
+
+  # ── Scheduler Service ────────────────────────────────────────
+  - type: web
+    name: bhumi-scheduler
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn services.scheduler_service.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATA_SERVICE_URL
+        fromService:
+          name: bhumi-data
+          type: web
+          property: host
+      - key: AI_SERVICE_URL
+        fromService:
+          name: bhumi-ai
+          type: web
+          property: host
+      - key: APP_ENV
+        value: production
+    healthCheckPath: /health

@@ -1,0 +1,15 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+pydantic==2.12.5
+python-multipart==0.0.20
+httpx==0.28.1
+
+apscheduler==3.11.0
+gTTS==2.5.4
+twilio==9.4.6
+pymongo==4.10.1
+bcrypt==4.2.1
+setuptools<81
+matplotlib>=3.10.8
+reportlab==4.2.5
+open-rppg==0.1.1

@@ -1,0 +1,2 @@
+"""ElderMind Gateway (public API)."""
+
