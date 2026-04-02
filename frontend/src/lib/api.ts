@@ -12,6 +12,11 @@ export type AppSession = {
   created_at: string
 }
 
+export type BackendHealth = {
+  status: string
+  service: string
+}
+
 export type UserProfile = {
   user_id: string
   name: string
@@ -238,6 +243,14 @@ function _authHeaders(extra?: Record<string, string>): Record<string, string> {
   const sid = _getSessionId()
   if (sid) headers['authorization'] = `Bearer ${sid}`
   return headers
+}
+
+export async function getBackendHealth(signal?: AbortSignal): Promise<BackendHealth> {
+  const res = await fetch(`${API_BASE}/health`, {
+    method: 'GET',
+    signal,
+  })
+  return asJson<BackendHealth>(res)
 }
 
 async function asJson<T>(res: Response): Promise<T> {

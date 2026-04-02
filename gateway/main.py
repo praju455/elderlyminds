@@ -18,7 +18,9 @@ _ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5174",
     "http://localhost:5174",
+    "https://elderlyminds.vercel.app",
 ]
+_ALLOWED_ORIGIN_REGEX = r"https://.*\.vercel\.app"
 
 
 def _cors_origins() -> list[str]:
@@ -26,6 +28,13 @@ def _cors_origins() -> list[str]:
     if not raw or raw == "*":
         return _ALLOWED_ORIGINS
     return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def _cors_origin_regex() -> str | None:
+    raw = (settings.cors_allow_origins or "").strip()
+    if not raw or raw == "*":
+        return _ALLOWED_ORIGIN_REGEX
+    return None
 
 
 # --- Auth middleware -----------------------------------------------------------
@@ -80,6 +89,7 @@ app.add_middleware(SessionAuthMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins(),
+    allow_origin_regex=_cors_origin_regex(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

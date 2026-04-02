@@ -30,11 +30,32 @@ from .pdf_report import generate_wellness_pdf
 from .weather_client import fetch_openweather_summary
 
 
+def _cors_origins() -> list[str]:
+    raw = (settings.cors_allow_origins or "*").strip()
+    if raw == "*":
+        return [
+            "http://127.0.0.1:5173",
+            "http://localhost:5173",
+            "http://127.0.0.1:5174",
+            "http://localhost:5174",
+            "https://elderlyminds.vercel.app",
+        ]
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def _cors_origin_regex() -> str | None:
+    raw = (settings.cors_allow_origins or "*").strip()
+    if raw == "*":
+        return r"https://.*\.vercel\.app"
+    return None
+
+
 app = FastAPI(title="ElderMind AI Service", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.cors_allow_origins == "*" else settings.cors_allow_origins.split(","),
+    allow_origins=_cors_origins(),
+    allow_origin_regex=_cors_origin_regex(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
