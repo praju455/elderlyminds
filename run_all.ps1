@@ -24,12 +24,6 @@ function Import-DotEnv([string]$path) {
   }
 }
 
-function Start-ServiceWindow([string]$title, [string]$module, [int]$port, [string]$rootPath, [string]$pythonPath) {
-  $command = "Set-Location '$rootPath'; & '$pythonPath' -m uvicorn $module --port $port"
-  Start-Process powershell -ArgumentList "-NoExit", "-Command", $command -WindowStyle Normal | Out-Null
-  Write-Host ("Started {0} on http://127.0.0.1:{1}" -f $title, $port)
-}
-
 Import-DotEnv (Join-Path $root ".env")
 
 if (-not (Test-Path (Join-Path $root ".venv"))) {
@@ -46,13 +40,6 @@ $env:PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1"
 & $pythonExe -m pip install -U pip
 & $pythonExe -m pip install -r (Join-Path $root "requirements.txt")
 
-Write-Host "Starting services..."
-Start-ServiceWindow "AI" "services.ai_service.main:app" 8001 $root $pythonExe
-Start-ServiceWindow "Data" "services.data_service.main:app" 8002 $root $pythonExe
-Start-ServiceWindow "Alerts" "services.alerts_service.main:app" 8003 $root $pythonExe
-Start-ServiceWindow "Scheduler" "services.scheduler_service.main:app" 8004 $root $pythonExe
-Start-ServiceWindow "Gateway" "gateway.main:app" 8010 $root $pythonExe
-
 Write-Host ""
 Write-Host "Gateway:  http://127.0.0.1:8010/health"
 Write-Host "AI:       http://127.0.0.1:8001/health"
@@ -61,3 +48,7 @@ Write-Host "Alerts:   http://127.0.0.1:8003/health"
 Write-Host "Scheduler http://127.0.0.1:8004/health"
 Write-Host ""
 Write-Host "Frontend should use VITE_API_BASE=http://127.0.0.1:8010"
+Write-Host ""
+Write-Host "Starting backend stack as a single local process group..."
+
+& $pythonExe -m services.serve_all

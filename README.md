@@ -82,7 +82,7 @@ Bhumi is a **voice-first AI companion** that talks to elderly Indians in their o
 
 - Python 3.12+
 - Node.js 18+
-- MongoDB Atlas cluster (free tier works)
+- MongoDB Atlas cluster (recommended for deployment; local unified startup can fall back to file storage)
 
 ### 1. Backend
 
@@ -100,8 +100,9 @@ pip install -r requirements.txt
 
 cp .env.example .env
 # Edit .env — set at minimum:
-#   MONGO_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/
 #   GROQ_API_KEY=your-groq-key
+# Optional but recommended:
+#   MONGO_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/
 
 # Start all services:
 # Windows:
@@ -145,7 +146,7 @@ Copy `.env.example` to `.env` and fill in:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `MONGO_URI` | Yes | MongoDB Atlas connection string |
+| `MONGO_URI` | Deploy: Yes, Local: No | MongoDB Atlas connection string. If omitted during unified local startup, the data service falls back to file storage. |
 | `GROQ_API_KEY` | Yes* | Groq LLM API key |
 | `GEMINI_API_KEY` | Yes* | Google Gemini API key |
 | `TWILIO_ACCOUNT_SID` | No | Twilio SMS (runs in stub mode without) |
@@ -163,13 +164,13 @@ Copy `.env.example` to `.env` and fill in:
 
 ### Backend — Render
 
-A `render.yaml` blueprint is included. To deploy:
+The included `render.yaml` now deploys the whole backend stack as a single Render web service.
 
 1. Push this repo to GitHub
 2. Go to [Render Dashboard](https://dashboard.render.com) > **New** > **Blueprint**
-3. Connect your repo — Render reads `render.yaml` and creates all 5 services
-4. Set the secret env vars (MONGO_URI, GROQ_API_KEY, etc.) in each service's settings
-5. Set `BASE_URL` on `bhumi-gateway` to its Render URL (e.g. `https://bhumi-gateway.onrender.com`)
+3. Connect your repo — Render reads `render.yaml` and creates one backend service: `bhumi-backend`
+4. Set the secret env vars there (`MONGO_URI`, `GROQ_API_KEY`, `GEMINI_API_KEY`, Twilio keys, etc.)
+5. Set `BASE_URL` to that service URL (for example `https://bhumi-backend.onrender.com`)
 6. Set `CORS_ALLOW_ORIGINS` to your Vercel frontend URL
 
 ### Frontend — Vercel
